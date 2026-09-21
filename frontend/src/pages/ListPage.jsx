@@ -209,7 +209,8 @@ export default function ListPage() {
   // client-side filtering for status, severity, date range
   const visibleRisks = (Array.isArray(risks) ? risks : []).filter(r => {
     if (statusFilter   && r.status   !== statusFilter)   return false
-    if (severityFilter && r.severity !== severityFilter) return false
+    const itemSev = (r.severity && r.severity.toUpperCase()) || ((r.score ?? r.riskScore) >= 70 ? 'HIGH' : (r.score ?? r.riskScore) >= 40 ? 'MEDIUM' : 'LOW')
+    if (severityFilter && itemSev !== severityFilter) return false
     if (dateFrom && r.createdDate) {
       if (new Date(r.createdDate) < new Date(dateFrom)) return false
     }
@@ -595,12 +596,15 @@ export default function ListPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      {risk.severity ? (
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold
-                          ${SEVERITY_COLOURS[risk.severity] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {risk.severity}
-                        </span>
-                      ) : '—'}
+                      {(() => {
+                        const sev = risk.severity || ((risk.score ?? risk.riskScore) >= 70 ? 'HIGH' : (risk.score ?? risk.riskScore) >= 40 ? 'MEDIUM' : 'LOW')
+                        return (
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold
+                            ${SEVERITY_COLOURS[sev] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {sev}
+                          </span>
+                        )
+                      })()}
                     </td>
 
                     <td className="px-4 py-3">
@@ -609,17 +613,17 @@ export default function ListPage() {
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className={scoreColour(risk.score ?? 0)}>
-                          {risk.score ?? '—'}
+                        <span className={scoreColour(risk.score ?? risk.riskScore ?? 0)}>
+                          {risk.score ?? risk.riskScore ?? '—'}
                         </span>
-                        {risk.score != null && (
+                        {(risk.score != null || risk.riskScore != null) && (
                           <div className="w-10 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full
-                                ${risk.score >= 75 ? 'bg-red-500'
-                                : risk.score >= 40 ? 'bg-yellow-400'
+                                ${(risk.score ?? risk.riskScore) >= 75 ? 'bg-red-500'
+                                : (risk.score ?? risk.riskScore) >= 40 ? 'bg-yellow-400'
                                 : 'bg-green-500'}`}
-                              style={{ width: `${Math.min(risk.score, 100)}%` }}
+                              style={{ width: `${Math.min(risk.score ?? risk.riskScore, 100)}%` }}
                             />
                           </div>
                         )}

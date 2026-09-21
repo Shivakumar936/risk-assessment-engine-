@@ -258,8 +258,10 @@ export default function DetailPage() {
   if (loading) return <LoadingSkeleton />
   if (error)   return <ErrorState message={error} navigate={navigate} />
 
-  const c         = scoreColour(risk.score ?? 0)
-  const isOverdue = risk.dueDate && new Date(risk.dueDate) < new Date()
+  const currentScore    = risk.score ?? risk.riskScore ?? 0
+  const currentSeverity = risk.severity || (currentScore >= 70 ? 'HIGH' : currentScore >= 40 ? 'MEDIUM' : 'LOW')
+  const c               = scoreColour(currentScore)
+  const isOverdue       = risk.dueDate && new Date(risk.dueDate) < new Date()
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -296,10 +298,10 @@ export default function DetailPage() {
 
               {/* badges */}
               <div className="flex flex-wrap gap-2 mb-3">
-                {risk.severity && (
+                {currentSeverity && (
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold
-                    ${SEVERITY_STYLES[risk.severity] ?? 'bg-gray-100 text-gray-600'}`}>
-                    {risk.severity}
+                    ${SEVERITY_STYLES[currentSeverity] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {currentSeverity}
                   </span>
                 )}
                 {risk.status && (
@@ -520,7 +522,7 @@ export default function DetailPage() {
                 Risk Score
               </h2>
               <div className="flex flex-col items-center">
-                <ScoreRing score={risk.score ?? 0} />
+                <ScoreRing score={currentScore} />
                 <div className={`mt-4 px-4 py-2 rounded-xl text-sm
                                  font-semibold ${c.bg} ${c.text}`}>
                   {c.label}
@@ -530,7 +532,7 @@ export default function DetailPage() {
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width: `${Math.min(risk.score ?? 0, 100)}%`,
+                        width: `${Math.min(currentScore, 100)}%`,
                         backgroundColor: c.ring,
                       }}
                     />
@@ -556,8 +558,8 @@ export default function DetailPage() {
               </h2>
               <div className="space-y-4">
                 {[
-                  { label: 'Severity', value: risk.severity,
-                    badge: SEVERITY_STYLES[risk.severity] },
+                  { label: 'Severity', value: currentSeverity,
+                    badge: SEVERITY_STYLES[currentSeverity] },
                   { label: 'Status',   value: risk.status,
                     badge: STATUS_STYLES[risk.status]   },
                 ].map(({ label, value, badge }) => (

@@ -34,6 +34,9 @@ public class RiskRecord {
     private Integer riskScore;
 
     @Column
+    private String severity;
+
+    @Column
     private String owner;
 
     @Column(name = "due_date")
@@ -57,11 +60,41 @@ public class RiskRecord {
         return riskScore;
     }
 
+    public void setScore(Integer score) {
+        this.riskScore = score;
+        if (this.severity == null && score != null) {
+            if (score >= 70) this.severity = "HIGH";
+            else if (score >= 40) this.severity = "MEDIUM";
+            else this.severity = "LOW";
+        }
+    }
+
+    public void setRiskScore(Integer riskScore) {
+        this.riskScore = riskScore;
+        if (this.severity == null && riskScore != null) {
+            if (riskScore >= 70) this.severity = "HIGH";
+            else if (riskScore >= 40) this.severity = "MEDIUM";
+            else this.severity = "LOW";
+        }
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity != null ? severity.toUpperCase() : null;
+        if (this.riskScore == null && this.severity != null) {
+            if ("HIGH".equalsIgnoreCase(this.severity)) this.riskScore = 80;
+            else if ("MEDIUM".equalsIgnoreCase(this.severity)) this.riskScore = 50;
+            else if ("LOW".equalsIgnoreCase(this.severity)) this.riskScore = 20;
+        }
+    }
+
     public LocalDateTime getCreatedDate() {
         return createdAt;
     }
 
     public String getSeverity() {
+        if (severity != null && !severity.isBlank()) {
+            return severity.toUpperCase();
+        }
         if (riskScore == null) return "LOW";
         if (riskScore >= 70) return "HIGH";
         if (riskScore >= 40) return "MEDIUM";

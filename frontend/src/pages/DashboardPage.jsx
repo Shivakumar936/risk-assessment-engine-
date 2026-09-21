@@ -137,7 +137,8 @@ export default function DashboardPage() {
       const computedSeverity = () => {
         const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 }
         list.forEach(r => {
-          const sev = r.severity || (r.riskScore >= 70 ? 'HIGH' : r.riskScore >= 40 ? 'MEDIUM' : 'LOW')
+          const scoreVal = r.score ?? r.riskScore
+          const sev = (r.severity && r.severity.toUpperCase()) || (scoreVal != null && scoreVal >= 70 ? 'HIGH' : scoreVal != null && scoreVal >= 40 ? 'MEDIUM' : 'LOW')
           counts[sev] = (counts[sev] ?? 0) + 1
         })
         return Object.entries(counts).map(([name, count]) => ({ name, count }))
@@ -149,7 +150,7 @@ export default function DashboardPage() {
 
       setStats({
         totalRisks:   d?.totalRisks ?? d?.total ?? list.length,
-        highSeverity: d?.highSeverity ?? d?.highRiskCount ?? list.filter(r => r.severity === 'HIGH' || r.riskScore >= 70).length,
+        highSeverity: d?.highSeverity ?? d?.highRiskCount ?? list.filter(r => (r.severity && r.severity.toUpperCase() === 'HIGH') || (r.score ?? r.riskScore) >= 70).length,
         openRisks:    d?.openRisks ?? d?.openCount ?? list.filter(r => r.status === 'OPEN').length,
         mitigated:    d?.mitigated ?? d?.closedCount ?? list.filter(r => r.status === 'MITIGATED' || r.status === 'CLOSED').length,
         byCategory,

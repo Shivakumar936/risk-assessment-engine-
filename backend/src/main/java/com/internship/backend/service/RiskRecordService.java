@@ -28,6 +28,23 @@ public class RiskRecordService {
     @CacheEvict(value = {"riskRecords", "riskRecord"}, allEntries = true)
     public RiskRecord saveRecord(RiskRecord riskRecord) {
         validate(riskRecord);
+        if (riskRecord.getRiskScore() == null && riskRecord.getScore() != null) {
+            riskRecord.setRiskScore(riskRecord.getScore());
+        }
+        if (riskRecord.getSeverity() == null || riskRecord.getSeverity().isBlank()) {
+            if (riskRecord.getRiskScore() != null) {
+                if (riskRecord.getRiskScore() >= 70) riskRecord.setSeverity("HIGH");
+                else if (riskRecord.getRiskScore() >= 40) riskRecord.setSeverity("MEDIUM");
+                else riskRecord.setSeverity("LOW");
+            } else {
+                riskRecord.setSeverity("LOW");
+                riskRecord.setRiskScore(20);
+            }
+        } else if (riskRecord.getRiskScore() == null) {
+            if ("HIGH".equalsIgnoreCase(riskRecord.getSeverity())) riskRecord.setRiskScore(80);
+            else if ("MEDIUM".equalsIgnoreCase(riskRecord.getSeverity())) riskRecord.setRiskScore(50);
+            else riskRecord.setRiskScore(20);
+        }
         RiskRecord saved = repository.save(riskRecord);
         new Thread(() -> {
             try { emailService.sendCreateNotification(saved); }
@@ -43,7 +60,16 @@ public class RiskRecordService {
         existing.setDescription(incoming.getDescription());
         existing.setCategory(incoming.getCategory());
         existing.setStatus(incoming.getStatus());
-        existing.setRiskScore(incoming.getRiskScore());
+        if (incoming.getRiskScore() != null) {
+            existing.setRiskScore(incoming.getRiskScore());
+        } else if (incoming.getScore() != null) {
+            existing.setRiskScore(incoming.getScore());
+        }
+        if (incoming.getSeverity() != null && !incoming.getSeverity().isBlank()) {
+            existing.setSeverity(incoming.getSeverity().toUpperCase());
+        } else if (existing.getRiskScore() != null) {
+            existing.setSeverity(existing.getRiskScore() >= 70 ? "HIGH" : existing.getRiskScore() >= 40 ? "MEDIUM" : "LOW");
+        }
         existing.setOwner(incoming.getOwner());
         existing.setDueDate(incoming.getDueDate());
         existing.setMitigationPlan(incoming.getMitigationPlan());
@@ -92,9 +118,9 @@ public class RiskRecordService {
         long open = all.stream().filter(r -> "OPEN".equalsIgnoreCase(r.getStatus())).count();
         long mitigated = all.stream().filter(r -> "MITIGATED".equalsIgnoreCase(r.getStatus()) || "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
         long closed = all.stream().filter(r -> "CLOSED".equalsIgnoreCase(r.getStatus())).count();
-        long high = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 70).count();
-        long med = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 40 && r.getRiskScore() < 70).count();
-        long low = all.stream().filter(r -> r.getRiskScore() == null || r.getRiskScore() < 40).count();
+        long high = all.stream().filter(r -> "HIGH".equalsIgnoreCase(r.getSeverity())).count();
+        long med = all.stream().filter(r -> "MEDIUM".equalsIgnoreCase(r.getSeverity())).count();
+        long low = all.stream().filter(r -> "LOW".equalsIgnoreCase(r.getSeverity()) || (!"HIGH".equalsIgnoreCase(r.getSeverity()) && !"MEDIUM".equalsIgnoreCase(r.getSeverity()))).count();
 
         Map<String, Long> categoryMap = all.stream()
                 .filter(r -> r.getCategory() != null && !r.getCategory().isBlank())

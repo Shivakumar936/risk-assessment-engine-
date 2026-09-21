@@ -102,13 +102,15 @@ export default function FormPage() {
     getRiskById(id)
       .then(res => {
         const d = res.data
+        const loadedScore = d.score ?? d.riskScore ?? ''
+        const loadedSeverity = d.severity || (loadedScore !== '' && Number(loadedScore) >= 70 ? 'HIGH' : loadedScore !== '' && Number(loadedScore) >= 40 ? 'MEDIUM' : loadedScore !== '' ? 'LOW' : '')
         setForm({
           title:          d.title          ?? '',
           description:    d.description    ?? '',
           category:       d.category       ?? '',
-          severity:       d.severity       ?? '',
+          severity:       loadedSeverity,
           status:         d.status         ?? '',
-          score:          d.score          ?? '',
+          score:          loadedScore,
           owner:          d.owner          ?? '',
           mitigationPlan: d.mitigationPlan ?? '',
           dueDate:        d.dueDate ? d.dueDate.split('T')[0] : '',
@@ -122,6 +124,11 @@ export default function FormPage() {
   function handleChange(e) {
     const { name, value } = e.target
     const updated = { ...form, [name]: value }
+    if (name === 'severity' && (!form.score || form.score === '')) {
+      if (value === 'HIGH') updated.score = 80
+      else if (value === 'MEDIUM') updated.score = 50
+      else if (value === 'LOW') updated.score = 20
+    }
     setForm(updated)
     if (touched[name]) {
       const newErrors = validate(updated)
@@ -153,9 +160,15 @@ export default function FormPage() {
     setLoading(true)
     setSubmitError(null)
 
+    const numericScore = form.score !== '' && !isNaN(form.score)
+      ? Number(form.score)
+      : (form.severity === 'HIGH' ? 80 : form.severity === 'MEDIUM' ? 50 : 20)
+
     const payload = {
       ...form,
-      score:   Number(form.score),
+      score: numericScore,
+      riskScore: numericScore,
+      severity: form.severity || (numericScore >= 70 ? 'HIGH' : numericScore >= 40 ? 'MEDIUM' : 'LOW'),
       dueDate: form.dueDate || null,
     }
 
