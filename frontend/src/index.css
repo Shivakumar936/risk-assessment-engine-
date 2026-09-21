@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    min-width: 320px;
+    overflow-x: hidden;
+    background-color: #F9FAFB;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Apply Arial via Tailwind class */
+  body {
+    @apply font-sans;
+  }
+
+  /* Inputs use same font */
+  input,
+  textarea,
+  select {
+    @apply font-sans;
+  }
+}
+
+/* Reusable touch target class (instead of global override) */
+@layer components {
+  .touch-target {
+    @apply min-h-touch min-w-touch;
+  }
+
+  /* Optional small UI elements */
+  .badge,
+  .tag,
+  .pill {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
