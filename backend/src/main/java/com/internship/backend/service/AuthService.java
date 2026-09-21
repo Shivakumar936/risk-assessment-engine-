@@ -79,7 +79,16 @@ public class AuthService implements UserDetailsService {
     // ── Login ────────────────────────────────────────────────────────────────
     public AuthResponse login(LoginRequest req) {
 
-        User user = userRepo.findByUsername(req.getUsername())
+        String identifier = req.getUsername() != null && !req.getUsername().isBlank()
+                ? req.getUsername().trim()
+                : (req.getEmail() != null ? req.getEmail().trim() : null);
+
+        if (identifier == null || identifier.isBlank()) {
+            throw new IllegalArgumentException("Username or email is required");
+        }
+
+        User user = userRepo.findByUsername(identifier)
+                .or(() -> userRepo.findByEmail(identifier))
                 .orElseThrow(() ->
                         new IllegalArgumentException("Invalid username or password"));
 

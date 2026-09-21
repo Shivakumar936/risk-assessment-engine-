@@ -278,15 +278,15 @@ export default function LoginPage() {
           <div className="space-y-1 text-xs text-gray-600">
             <div className="flex justify-between">
               <span className="text-gray-500">Admin:</span>
-              <span className="font-mono">admin@gmail.com / admin124</span>
+              <span className="font-mono">admin / admin123</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Manager:</span>
-              <span className="font-mono">manager@gmail.com / manager124</span>
+              <span className="font-mono">manager / manager123</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Viewer:</span>
-              <span className="font-mono">viewer@gmail.com / viewer124</span>
+              <span className="font-mono">viewer / viewer123</span>
             </div>
           </div>
         </div>
