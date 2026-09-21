@@ -272,24 +272,21 @@ pytest
 ---
  
 ## 📸 Screenshots
- 
-Add screenshots inside the `screenshots/` folder.
- 
-```text
-screenshots/
-├── login.png
-├── dashboard.png
-├── risk-list.png
-├── ai-panel.png
-└── analytics.png
-```
- 
-Example:
- 
-```md
+
+### Login
+![Login](screenshots/login.png)
+
+### Dashboard
 ![Dashboard](screenshots/dashboard.png)
-```
- 
+
+### Risk List
+![Risk List](screenshots/risk-list.png)
+
+### AI Panel
+![AI Panel](screenshots/ai-panel.png)
+
+### Analytics
+![Analytics](screenshots/analytics.png)
 ---
  
 ## 🤝 Git Workflow
