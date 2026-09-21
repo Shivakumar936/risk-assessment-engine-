@@ -90,8 +90,8 @@ public class RiskRecordService {
         List<RiskRecord> all = repository.findByDeletedFalse();
         long total = all.size();
         long open = all.stream().filter(r -> "OPEN".equalsIgnoreCase(r.getStatus())).count();
-        long inProgress = all.stream().filter(r -> "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
-        long closed = all.stream().filter(r -> "CLOSED".equalsIgnoreCase(r.getStatus()) || "MITIGATED".equalsIgnoreCase(r.getStatus())).count();
+        long mitigated = all.stream().filter(r -> "MITIGATED".equalsIgnoreCase(r.getStatus()) || "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
+        long closed = all.stream().filter(r -> "CLOSED".equalsIgnoreCase(r.getStatus())).count();
         long high = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 70).count();
         long med = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 40 && r.getRiskScore() < 70).count();
         long low = all.stream().filter(r -> r.getRiskScore() == null || r.getRiskScore() < 40).count();
@@ -106,7 +106,7 @@ public class RiskRecordService {
 
         List<StatsResponse.CategoryCount> byStatus = List.of(
                 new StatsResponse.CategoryCount("OPEN", open),
-                new StatsResponse.CategoryCount("MITIGATED", inProgress),
+                new StatsResponse.CategoryCount("MITIGATED", mitigated),
                 new StatsResponse.CategoryCount("CLOSED", closed)
         );
 
@@ -121,9 +121,9 @@ public class RiskRecordService {
                 .totalRisks(total)
                 .openCount(open)
                 .openRisks(open)
-                .inProgressCount(inProgress)
+                .inProgressCount(mitigated)
                 .closedCount(closed)
-                .mitigated(closed + inProgress)
+                .mitigated(mitigated + closed)
                 .averageRiskScore(repository.averageRiskScore())
                 .highRiskCount(high)
                 .highSeverity(high)
