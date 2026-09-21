@@ -88,14 +88,17 @@ function buildMonthlyData(risks) {
 function buildPieData(arr) {
   if (!arr?.length) return []
   const total = arr.reduce((s, i) => s + i.count, 0)
-  return arr.map((item, i) => ({
-    name:    item.name,
-    value:   item.count,
-    fill:    STATUS_COLOURS[item.name]
-          ?? SEVERITY_COLOURS[item.name]
-          ?? CATEGORY_COLOURS[i % CATEGORY_COLOURS.length],
-    percent: total ? Math.round((item.count / total) * 100) : 0,
-  }))
+  return arr.map((item, i) => {
+    const key = item?.name?.toUpperCase()
+    return {
+      name:    item.name,
+      value:   item.count,
+      fill:    STATUS_COLOURS[key]
+            ?? SEVERITY_COLOURS[key]
+            ?? CATEGORY_COLOURS[i % CATEGORY_COLOURS.length],
+      percent: total ? Math.round((item.count / total) * 100) : 0,
+    }
+  })
 }
 
 // sub-components
@@ -409,8 +412,9 @@ export default function AnalyticsPage() {
                                stats?.byCategory ?? []
 
   const getBarColour = (entry, index) => {
-    if (chartView === 'severity') return SEVERITY_COLOURS[entry.name] ?? '#1B4F8A'
-    if (chartView === 'status')   return STATUS_COLOURS[entry.name]   ?? '#1B4F8A'
+    const key = entry?.name?.toUpperCase()
+    if (chartView === 'severity') return SEVERITY_COLOURS[key] ?? '#1B4F8A'
+    if (chartView === 'status')   return STATUS_COLOURS[key]   ?? '#1B4F8A'
     return CATEGORY_COLOURS[index % CATEGORY_COLOURS.length]
   }
 
@@ -548,6 +552,27 @@ export default function AnalyticsPage() {
                 </div>
               }
             >
+              {!loading && barData.length > 0 && (
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  {barData.map((item, i) => {
+                    const col = getBarColour(item, i)
+                    return (
+                      <span
+                        key={item.name}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                        style={{
+                          backgroundColor: `${col}15`,
+                          color: col,
+                        }}
+                      >
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col }} />
+                        <span>{item.name}</span>
+                        <span className="font-bold text-gray-800 ml-0.5">({item.count})</span>
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
               {barData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={barData}

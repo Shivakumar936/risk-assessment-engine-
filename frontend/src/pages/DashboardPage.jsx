@@ -170,8 +170,9 @@ export default function DashboardPage() {
                                stats?.byCategory ?? []
 
   function getBarColour(entry, index) {
-    if (chartView === 'status')   return STATUS_COLOURS[entry.name]   ?? '#1B4F8A'
-    if (chartView === 'severity') return SEVERITY_COLOURS[entry.name] ?? '#1B4F8A'
+    const key = entry?.name?.toUpperCase()
+    if (chartView === 'status')   return STATUS_COLOURS[key]   ?? '#1B4F8A'
+    if (chartView === 'severity') return SEVERITY_COLOURS[key] ?? '#1B4F8A'
     return CATEGORY_COLOURS[index % CATEGORY_COLOURS.length]
   }
 
@@ -281,6 +282,29 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
+
+            {/* Quick summary indicator pills */}
+            {!loading && barData.length > 0 && (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                {barData.map((item, i) => {
+                  const col = getBarColour(item, i)
+                  return (
+                    <span
+                      key={item.name}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold"
+                      style={{
+                        backgroundColor: `${col}15`,
+                        color: col,
+                      }}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col }} />
+                      <span>{item.name}</span>
+                      <span className="font-bold text-gray-800 ml-0.5">({item.count})</span>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
 
             {loading ? (
               <div className="h-52 sm:h-64 bg-gray-50 rounded-xl animate-pulse" />

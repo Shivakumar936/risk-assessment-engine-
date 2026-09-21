@@ -124,11 +124,28 @@ export default function FormPage() {
   function handleChange(e) {
     const { name, value } = e.target
     const updated = { ...form, [name]: value }
-    if (name === 'severity' && (!form.score || form.score === '')) {
-      if (value === 'HIGH') updated.score = 80
-      else if (value === 'MEDIUM') updated.score = 50
-      else if (value === 'LOW') updated.score = 20
+
+    if (name === 'severity') {
+      if (value === 'HIGH' && (!form.score || Number(form.score) < 70)) {
+        updated.score = 80
+      } else if (value === 'MEDIUM' && (!form.score || Number(form.score) < 40 || Number(form.score) >= 70)) {
+        updated.score = 50
+      } else if (value === 'LOW' && (!form.score || Number(form.score) >= 40)) {
+        updated.score = 20
+      }
+    } else if (name === 'score') {
+      if (value !== '' && !isNaN(value)) {
+        const num = Number(value)
+        if (num >= 70) {
+          updated.severity = 'HIGH'
+        } else if (num >= 40) {
+          updated.severity = 'MEDIUM'
+        } else if (num >= 0) {
+          updated.severity = 'LOW'
+        }
+      }
     }
+
     setForm(updated)
     if (touched[name]) {
       const newErrors = validate(updated)
@@ -199,7 +216,7 @@ export default function FormPage() {
 
   //  score colour 
   function scoreColour(v) {
-    if (v >= 75) return 'text-red-600'
+    if (v >= 70) return 'text-red-600'
     if (v >= 40) return 'text-yellow-600'
     return 'text-green-600'
   }
@@ -424,13 +441,16 @@ export default function FormPage() {
                       <div className="h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300
-                            ${Number(form.score) >= 75 ? 'bg-red-500'
+                            ${Number(form.score) >= 70 ? 'bg-red-500'
                             : Number(form.score) >= 40 ? 'bg-yellow-400'
                             : 'bg-green-500'}`}
                           style={{ width: `${Math.min(form.score, 100)}%` }}
                         />
                       </div>
                     )}
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      0–39 Low · 40–69 Medium · 70–100 High
+                    </p>
                   </Field>
 
                   <Field label="Owner" name="owner" required
