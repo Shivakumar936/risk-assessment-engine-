@@ -33,6 +33,15 @@ public class RiskRecord {
     @Column(name = "risk_score")
     private Integer riskScore;
 
+    @Column
+    private String owner;
+
+    @Column(name = "due_date")
+    private java.time.LocalDate dueDate;
+
+    @Column(name = "mitigation_plan", length = 2000)
+    private String mitigationPlan;
+
     @Column(nullable = false)
     private Boolean deleted = false;
 
@@ -43,4 +52,19 @@ public class RiskRecord {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public Integer getScore() {
+        return riskScore;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdAt;
+    }
+
+    public String getSeverity() {
+        if (riskScore == null) return "LOW";
+        if (riskScore >= 70) return "HIGH";
+        if (riskScore >= 40) return "MEDIUM";
+        return "LOW";
+    }
 }

@@ -103,7 +103,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     getRiskStats()
-      .then(res => { setStats(res.data); setUsingMock(false) })
+      .then(res => {
+        const d = res.data
+        const formatted = {
+          totalRisks:   d.totalRisks ?? d.total ?? 0,
+          highSeverity: d.highSeverity ?? d.highRiskCount ?? 0,
+          openRisks:    d.openRisks ?? d.openCount ?? 0,
+          mitigated:    d.mitigated ?? d.closedCount ?? 0,
+          byCategory:   d.byCategory ?? [],
+          byStatus:     d.byStatus ?? [],
+          bySeverity:   d.bySeverity ?? [],
+        }
+        setStats(formatted)
+        setUsingMock(false)
+      })
       .catch(()  => { setStats(MOCK_STATS); setUsingMock(true) })
       .finally(()  => setLoading(false))
   }, [])
@@ -228,7 +241,7 @@ export default function DashboardPage() {
 
             {loading ? (
               <div className="h-52 sm:h-64 bg-gray-50 rounded-xl animate-pulse" />
-            ) : (
+            ) : barData.length > 0 ? (
               <div className="w-full h-[220px] min-w-0">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart
@@ -261,6 +274,10 @@ export default function DashboardPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[220px] flex flex-col items-center justify-center text-gray-400 text-sm">
+                <p>No risks available for {chartView} yet.</p>
               </div>
             )}
           </div>

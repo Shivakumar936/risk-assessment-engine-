@@ -10,6 +10,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class RiskRecordService {
@@ -42,6 +44,9 @@ public class RiskRecordService {
         existing.setCategory(incoming.getCategory());
         existing.setStatus(incoming.getStatus());
         existing.setRiskScore(incoming.getRiskScore());
+        existing.setOwner(incoming.getOwner());
+        existing.setDueDate(incoming.getDueDate());
+        existing.setMitigationPlan(incoming.getMitigationPlan());
         return repository.save(existing);
     }
 
@@ -77,14 +82,49 @@ public class RiskRecordService {
     }
 
     public StatsResponse getStats() {
-        long highRisk = repository.findHighScoreOpenRisks().size();
+        List<RiskRecord> all = repository.findByDeletedFalse();
+        long total = all.size();
+        long open = all.stream().filter(r -> "OPEN".equalsIgnoreCase(r.getStatus())).count();
+        long inProgress = all.stream().filter(r -> "IN_PROGRESS".equalsIgnoreCase(r.getStatus())).count();
+        long closed = all.stream().filter(r -> "CLOSED".equalsIgnoreCase(r.getStatus()) || "MITIGATED".equalsIgnoreCase(r.getStatus())).count();
+        long high = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 70).count();
+        long med = all.stream().filter(r -> r.getRiskScore() != null && r.getRiskScore() >= 40 && r.getRiskScore() < 70).count();
+        long low = all.stream().filter(r -> r.getRiskScore() == null || r.getRiskScore() < 40).count();
+
+        Map<String, Long> categoryMap = all.stream()
+                .filter(r -> r.getCategory() != null && !r.getCategory().isBlank())
+                .collect(Collectors.groupingBy(RiskRecord::getCategory, Collectors.counting()));
+
+        List<StatsResponse.CategoryCount> byCategory = categoryMap.entrySet().stream()
+                .map(e -> new StatsResponse.CategoryCount(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+
+        List<StatsResponse.CategoryCount> byStatus = List.of(
+                new StatsResponse.CategoryCount("OPEN", open),
+                new StatsResponse.CategoryCount("MITIGATED", inProgress),
+                new StatsResponse.CategoryCount("CLOSED", closed)
+        );
+
+        List<StatsResponse.CategoryCount> bySeverity = List.of(
+                new StatsResponse.CategoryCount("HIGH", high),
+                new StatsResponse.CategoryCount("MEDIUM", med),
+                new StatsResponse.CategoryCount("LOW", low)
+        );
+
         return StatsResponse.builder()
-                .total(repository.countByDeletedFalse())
-                .openCount(repository.countByStatusAndDeletedFalse("OPEN"))
-                .inProgressCount(repository.countByStatusAndDeletedFalse("IN_PROGRESS"))
-                .closedCount(repository.countByStatusAndDeletedFalse("CLOSED"))
+                .total(total)
+                .totalRisks(total)
+                .openCount(open)
+                .openRisks(open)
+                .inProgressCount(inProgress)
+                .closedCount(closed)
+                .mitigated(closed + inProgress)
                 .averageRiskScore(repository.averageRiskScore())
-                .highRiskCount(highRisk)
+                .highRiskCount(high)
+                .highSeverity(high)
+                .byCategory(byCategory)
+                .byStatus(byStatus)
+                .bySeverity(bySeverity)
                 .build();
     }
 

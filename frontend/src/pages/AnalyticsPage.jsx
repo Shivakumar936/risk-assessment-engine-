@@ -69,8 +69,9 @@ function buildMonthlyData(risks) {
   if (!risks?.length) return []
   const map = {}
   risks.forEach(r => {
-    if (!r.createdDate) return
-    const d     = new Date(r.createdDate)
+    const rawDate = r.createdDate || r.createdAt
+    if (!rawDate) return
+    const d     = new Date(rawDate)
     const label = d.toLocaleDateString('en-GB', {
       month: 'short', year: '2-digit',
     })
@@ -309,7 +310,17 @@ export default function AnalyticsPage() {
     ])
 
     if (statsRes.status === 'fulfilled') {
-      setStats(statsRes.value.data)
+      const d = statsRes.value.data
+      const formatted = {
+        totalRisks:   d.totalRisks ?? d.total ?? 0,
+        highSeverity: d.highSeverity ?? d.highRiskCount ?? 0,
+        openRisks:    d.openRisks ?? d.openCount ?? 0,
+        mitigated:    d.mitigated ?? d.closedCount ?? 0,
+        byCategory:   d.byCategory ?? [],
+        byStatus:     d.byStatus ?? [],
+        bySeverity:   d.bySeverity ?? [],
+      }
+      setStats(formatted)
       setUsingMock(false)
     } else {
       setStats(MOCK_STATS)

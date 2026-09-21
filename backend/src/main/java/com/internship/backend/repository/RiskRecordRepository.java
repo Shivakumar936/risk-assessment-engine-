@@ -18,6 +18,8 @@ public interface RiskRecordRepository extends JpaRepository<RiskRecord, Long> {
 
     List<RiskRecord> findByCategoryAndDeletedFalse(String category);
 
+    List<RiskRecord> findByDeletedFalse();
+
     Page<RiskRecord> findByDeletedFalse(Pageable pageable);
 
     @Query("""
