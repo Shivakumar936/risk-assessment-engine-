@@ -55,6 +55,7 @@ services:
       DB_DRIVER:     org.postgresql.Driver
       DB_USERNAME:   ${POSTGRES_USER:-riskuser}
       DB_PASSWORD:   ${POSTGRES_PASSWORD:-riskpass}
+      CACHE_TYPE:    redis
       REDIS_HOST:    redis
       REDIS_PORT:    6379
       JWT_SECRET:    ${JWT_SECRET:-changeme_use_a_long_random_string_here}
