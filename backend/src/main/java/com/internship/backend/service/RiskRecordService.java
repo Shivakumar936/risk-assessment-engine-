@@ -52,6 +52,11 @@ public class RiskRecordService {
 
     @Cacheable("riskRecords")
     public Page<RiskRecord> getAllRecords(int page, int size, String sortBy, String sortDir) {
+        if ("createdDate".equalsIgnoreCase(sortBy)) {
+            sortBy = "createdAt";
+        } else if ("score".equalsIgnoreCase(sortBy)) {
+            sortBy = "riskScore";
+        }
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();

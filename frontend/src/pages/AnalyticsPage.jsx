@@ -306,33 +306,66 @@ export default function AnalyticsPage() {
     setLoading(true)
     const [statsRes, risksRes] = await Promise.allSettled([
       getRiskStats(),
-      getAllRisks(0, 500, 'createdDate', 'asc'),
+      getAllRisks(0, 500, 'createdAt', 'asc'),
     ])
 
-    if (statsRes.status === 'fulfilled') {
-      const d = statsRes.value.data
+    let list = []
+    if (risksRes.status === 'fulfilled') {
+      const raw  = risksRes.value.data
+      list = raw?.content ?? (Array.isArray(raw) ? raw : [])
+      setAllRisks(list)
+    } else {
+      setAllRisks([])
+    }
+
+    if (statsRes.status === 'fulfilled' || list.length > 0) {
+      const d = statsRes.status === 'fulfilled' ? statsRes.value.data : {}
+
+      const computedCategories = () => {
+        const counts = {}
+        list.forEach(r => {
+          const c = r.category || 'Other'
+          counts[c] = (counts[c] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const computedStatus = () => {
+        const counts = { OPEN: 0, MITIGATED: 0, CLOSED: 0 }
+        list.forEach(r => {
+          const s = (r.status || 'OPEN').toUpperCase()
+          counts[s] = (counts[s] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const computedSeverity = () => {
+        const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 }
+        list.forEach(r => {
+          const sev = r.severity || (r.riskScore >= 70 ? 'HIGH' : r.riskScore >= 40 ? 'MEDIUM' : 'LOW')
+          counts[sev] = (counts[sev] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const byCategory = (d?.byCategory && d.byCategory.length > 0) ? d.byCategory : computedCategories()
+      const byStatus = (d?.byStatus && d.byStatus.length > 0) ? d.byStatus : computedStatus()
+      const bySeverity = (d?.bySeverity && d.bySeverity.length > 0) ? d.bySeverity : computedSeverity()
+
       const formatted = {
-        totalRisks:   d.totalRisks ?? d.total ?? 0,
-        highSeverity: d.highSeverity ?? d.highRiskCount ?? 0,
-        openRisks:    d.openRisks ?? d.openCount ?? 0,
-        mitigated:    d.mitigated ?? d.closedCount ?? 0,
-        byCategory:   d.byCategory ?? [],
-        byStatus:     d.byStatus ?? [],
-        bySeverity:   d.bySeverity ?? [],
+        totalRisks:   d?.totalRisks ?? d?.total ?? list.length,
+        highSeverity: d?.highSeverity ?? d?.highRiskCount ?? list.filter(r => r.severity === 'HIGH' || r.riskScore >= 70).length,
+        openRisks:    d?.openRisks ?? d?.openCount ?? list.filter(r => r.status === 'OPEN').length,
+        mitigated:    d?.mitigated ?? d?.closedCount ?? list.filter(r => r.status === 'MITIGATED' || r.status === 'CLOSED').length,
+        byCategory,
+        byStatus,
+        bySeverity,
       }
       setStats(formatted)
       setUsingMock(false)
     } else {
       setStats(MOCK_STATS)
       setUsingMock(true)
-    }
-
-    if (risksRes.status === 'fulfilled') {
-      const raw  = risksRes.value.data
-      const list = raw?.content ?? (Array.isArray(raw) ? raw : [])
-      setAllRisks(list)
-    } else {
-      setAllRisks([])
     }
 
     setLoading(false)

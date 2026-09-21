@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getRiskStats } from '../services/riskService'
+import { getRiskStats, getAllRisks } from '../services/riskService'
 import Navbar from '../components/Navbar'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -102,23 +102,65 @@ export default function DashboardPage() {
   const [chartView, setChartView] = useState('category')
 
   useEffect(() => {
-    getRiskStats()
-      .then(res => {
-        const d = res.data
-        const formatted = {
-          totalRisks:   d.totalRisks ?? d.total ?? 0,
-          highSeverity: d.highSeverity ?? d.highRiskCount ?? 0,
-          openRisks:    d.openRisks ?? d.openCount ?? 0,
-          mitigated:    d.mitigated ?? d.closedCount ?? 0,
-          byCategory:   d.byCategory ?? [],
-          byStatus:     d.byStatus ?? [],
-          bySeverity:   d.bySeverity ?? [],
-        }
-        setStats(formatted)
-        setUsingMock(false)
+    Promise.allSettled([
+      getRiskStats(),
+      getAllRisks(0, 500, 'createdAt', 'desc'),
+    ]).then(([statsRes, risksRes]) => {
+      const d = statsRes.status === 'fulfilled' ? statsRes.value.data : null
+      const raw = risksRes.status === 'fulfilled' ? risksRes.value.data : null
+      const list = raw?.content ?? (Array.isArray(raw) ? raw : [])
+
+      if (!d && !list.length) {
+        setStats(MOCK_STATS)
+        setUsingMock(true)
+        return
+      }
+
+      const computedCategories = () => {
+        const counts = {}
+        list.forEach(r => {
+          const c = r.category || 'Other'
+          counts[c] = (counts[c] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const computedStatus = () => {
+        const counts = { OPEN: 0, MITIGATED: 0, CLOSED: 0 }
+        list.forEach(r => {
+          const s = (r.status || 'OPEN').toUpperCase()
+          counts[s] = (counts[s] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const computedSeverity = () => {
+        const counts = { HIGH: 0, MEDIUM: 0, LOW: 0 }
+        list.forEach(r => {
+          const sev = r.severity || (r.riskScore >= 70 ? 'HIGH' : r.riskScore >= 40 ? 'MEDIUM' : 'LOW')
+          counts[sev] = (counts[sev] ?? 0) + 1
+        })
+        return Object.entries(counts).map(([name, count]) => ({ name, count }))
+      }
+
+      const byCategory = (d?.byCategory && d.byCategory.length > 0) ? d.byCategory : computedCategories()
+      const byStatus = (d?.byStatus && d.byStatus.length > 0) ? d.byStatus : computedStatus()
+      const bySeverity = (d?.bySeverity && d.bySeverity.length > 0) ? d.bySeverity : computedSeverity()
+
+      setStats({
+        totalRisks:   d?.totalRisks ?? d?.total ?? list.length,
+        highSeverity: d?.highSeverity ?? d?.highRiskCount ?? list.filter(r => r.severity === 'HIGH' || r.riskScore >= 70).length,
+        openRisks:    d?.openRisks ?? d?.openCount ?? list.filter(r => r.status === 'OPEN').length,
+        mitigated:    d?.mitigated ?? d?.closedCount ?? list.filter(r => r.status === 'MITIGATED' || r.status === 'CLOSED').length,
+        byCategory,
+        byStatus,
+        bySeverity,
       })
-      .catch(()  => { setStats(MOCK_STATS); setUsingMock(true) })
-      .finally(()  => setLoading(false))
+      setUsingMock(false)
+    }).catch(() => {
+      setStats(MOCK_STATS)
+      setUsingMock(true)
+    }).finally(() => setLoading(false))
   }, [])
 
   const barData =
