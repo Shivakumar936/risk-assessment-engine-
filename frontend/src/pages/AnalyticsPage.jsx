@@ -162,7 +162,7 @@ function ChartCard({ title, subtitle, children, loading, action, height = 280 })
           </div>
         </div>
       ) : (
-        <div style={{ height }}>{children}</div>
+        <div style={{ height }} className="w-full min-w-0">{children}</div>
       )}
     </div>
   )
@@ -504,7 +504,7 @@ export default function AnalyticsPage() {
               }
             >
               {barData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={barData}
                     margin={{ top: 5, right: 10, left: -15, bottom: 5 }}
                     barSize={40}>
@@ -580,7 +580,7 @@ export default function AnalyticsPage() {
             action={<PeriodSelector value={period} onChange={setPeriod} />}
           >
             {filteredMonthly.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={filteredMonthly}
                   margin={{ top: 10, right: 10, left: -15, bottom: 5 }}>
                   <defs>
@@ -614,7 +614,7 @@ export default function AnalyticsPage() {
             height={260}
           >
             {pieStatusData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie data={pieStatusData} cx="50%" cy="45%"
                     innerRadius={60} outerRadius={90}
@@ -643,7 +643,7 @@ export default function AnalyticsPage() {
             height={260}
           >
             {pieSeverityData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie data={pieSeverityData} cx="50%" cy="45%"
                     innerRadius={60} outerRadius={90}

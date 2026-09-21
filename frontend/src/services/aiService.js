@@ -74,7 +74,18 @@ function emitSseLines(text, onChunk, onDone) {
       onDone()
       return true
     }
-    if (chunk) onChunk(chunk)
+    if (chunk) {
+      try {
+        const parsed = JSON.parse(chunk)
+        if (parsed && typeof parsed === 'object' && parsed.delta !== undefined) {
+          onChunk(parsed.delta)
+          continue
+        }
+      } catch {
+        // raw string chunk
+      }
+      onChunk(chunk)
+    }
   }
   return false
 }

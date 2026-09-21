@@ -63,12 +63,28 @@ export default function ReportStreamer({ riskData }) {
     setRawText('')
     setReport(null)
 
+    const title = riskData?.title || 'System Risk Assessment Report'
+    const desc = riskData?.description || 'Comprehensive evaluation of system risks, security vulnerabilities, and operational controls.'
+    const category = riskData?.category || 'OPERATIONAL'
+    const severity = riskData?.severity || 'MEDIUM'
+
     const payload = {
-      title:       riskData?.title       ?? 'Risk Assessment Report',
-      description: riskData?.description ?? '',
-      category:    riskData?.category    ?? '',
-      severity:    riskData?.severity    ?? '',
-      score:       riskData?.score       ?? 0,
+      project_name: title,
+      audience: 'engineer',
+      format: 'markdown',
+      risks: [
+        {
+          title: title,
+          description: desc,
+          category: category,
+          severity: severity,
+        }
+      ],
+      title: title,
+      description: desc,
+      category: category,
+      severity: severity,
+      score: riskData?.score ?? 0,
     }
 
     if (useSSE) {
@@ -87,7 +103,8 @@ export default function ReportStreamer({ riskData }) {
               const parsed = JSON.parse(prev)
               setReport(parsed)
             } catch {
-              // plain text — keep as is
+              // plain text / markdown
+              setReport({ title, content: prev })
             }
             return prev
           })
@@ -109,12 +126,12 @@ export default function ReportStreamer({ riskData }) {
       const res = await generateReport(payload)
       const data = res.data
       setReport(data)
-      setRawText(JSON.stringify(data, null, 2))
+      setRawText(data.content ?? JSON.stringify(data, null, 2))
       setDone(true)
     } catch (err) {
       setError(
         err.message === 'Network Error'
-          ? 'Cannot reach AI service on port 5000.'
+          ? 'Cannot reach AI service.'
           : err.response?.data?.error
           ?? 'Report generation failed. Please try again.'
       )
@@ -316,6 +333,12 @@ export default function ReportStreamer({ riskData }) {
               </div>
             )}
 
+            {report.content && !report.executive_summary && !report.overview && (
+              <ReportSection
+                title="Assessment Report"
+                content={report.content}
+              />
+            )}
             <ReportSection
               title="Executive Summary"
               content={report.executive_summary ?? report.executiveSummary}

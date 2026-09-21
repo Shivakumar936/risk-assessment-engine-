@@ -229,37 +229,39 @@ export default function DashboardPage() {
             {loading ? (
               <div className="h-52 sm:h-64 bg-gray-50 rounded-xl animate-pulse" />
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart
-                  data={barData}
-                  margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
-                  barSize={32}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#f0f0f0"
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{ fontSize: 10, fill: '#9ca3af' }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: '#9ca3af' }}
-                    axisLine={false}
-                    tickLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="count" name="Risks" radius={[5, 5, 0, 0]}>
-                    {barData.map((entry, i) => (
-                      <Cell key={i} fill={getBarColour(entry, i)} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[220px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <BarChart
+                    data={barData}
+                    margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                    barSize={32}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#f0f0f0"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="count" name="Risks" radius={[5, 5, 0, 0]}>
+                      {barData.map((entry, i) => (
+                        <Cell key={i} fill={getBarColour(entry, i)} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </div>
 
