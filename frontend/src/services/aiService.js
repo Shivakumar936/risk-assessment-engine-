@@ -1,11 +1,7 @@
 import axios from 'axios'
 
 const AI_BASE = import.meta.env.VITE_AI_URL
-  || (import.meta.env.DEV ? 'http://localhost:5000' : undefined)
-
-if (!AI_BASE) {
-  throw new Error('VITE_AI_URL must be set for production AI builds.')
-}
+  || (import.meta.env.DEV ? 'http://localhost:5000' : '/ai')
 
 const aiApi = axios.create({
   baseURL: AI_BASE,

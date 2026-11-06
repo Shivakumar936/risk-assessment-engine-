@@ -25,11 +25,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "spring.mail.port=3025",
     "spring.mail.username=test",
     "spring.mail.password=test",
-    "spring.data.redis.host=localhost"
+    "spring.data.redis.host=localhost",
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect"
 })
 @AutoConfigureMockMvc
 @Testcontainers
 class RiskRecordIntegrationTest {
+
+    static {
+        System.setProperty("user.timezone", "UTC");
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
+    }
 
     @Container
     static PostgreSQLContainer<?> postgres =
